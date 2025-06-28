@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
   const copyAllBtn = document.getElementById('copyAllBtn');
   const checkStatusBtn = document.getElementById('checkStatusBtn');
-  const refreshBtn = document.getElementById('refreshBtn');
   const linkList = document.getElementById('linkList');
   const stats = document.getElementById('stats');
   const sourceUrl = document.getElementById('sourceUrl');
@@ -14,10 +13,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const urlParams = new URLSearchParams(window.location.search);
   const sourceTabId = urlParams.get('tabId');
 
-  // Load links when page loads
+  // Load links automatically when page loads
   loadLinks();
-
-  refreshBtn.addEventListener('click', loadLinks);
 
   copyAllBtn.addEventListener('click', function() {
     if (currentLinks.length === 0) return;
@@ -39,8 +36,6 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   function loadLinks() {
-    refreshBtn.disabled = true;
-    refreshBtn.textContent = 'Loading...';
     linkList.innerHTML = '<div class="loading">Loading links</div>';
     stats.textContent = 'Loading links from page...';
 
@@ -72,9 +67,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function handleLinksResponse(response) {
-    refreshBtn.disabled = false;
-    refreshBtn.textContent = 'Refresh Links';
-    
     if (response && response.links) {
       currentLinks = response.links;
       displayLinks(response.links);
@@ -129,8 +121,6 @@ document.addEventListener('DOMContentLoaded', function() {
   function showError(message) {
     linkList.innerHTML = `<div class="no-links">Error: ${message}</div>`;
     stats.textContent = 'Error loading links';
-    refreshBtn.disabled = false;
-    refreshBtn.textContent = 'Refresh Links';
   }
 
   async function checkAllStatus() {
