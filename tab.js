@@ -3,9 +3,12 @@ document.addEventListener('DOMContentLoaded', function() {
   const checkStatusBtn = document.getElementById('checkStatusBtn');
   const linkList = document.getElementById('linkList');
   const stats = document.getElementById('stats');
+  const statsCount = document.getElementById('statsCount');
   const sourceUrl = document.getElementById('sourceUrl');
   const sourceUrlText = document.getElementById('sourceUrlText');
   const checkControls = document.getElementById('checkControls');
+  const filterControls = document.getElementById('filterControls');
+  const statusFilter = document.getElementById('statusFilter');
   const intervalInput = document.getElementById('intervalInput');
   let currentLinks = [];
 
@@ -19,8 +22,24 @@ document.addEventListener('DOMContentLoaded', function() {
   copyAllBtn.addEventListener('click', function() {
     if (currentLinks.length === 0) return;
     
-    const allUrls = currentLinks.map(link => link.url).join('\n');
-    copyToClipboard(allUrls, copyAllBtn);
+    // Get only visible (non-hidden) link items
+    const visibleLinkItems = linkList.querySelectorAll('.link-item:not(.hidden)');
+    const visibleUrls = Array.from(visibleLinkItems).map(function(linkItem) {
+      const linkElement = linkItem.querySelector('.link-url a');
+      return linkElement ? linkElement.href : '';
+    }).filter(url => url !== '');
+    
+    if (visibleUrls.length === 0) {
+      const originalText = copyAllBtn.textContent;
+      copyAllBtn.textContent = 'No links to copy';
+      setTimeout(function() {
+        copyAllBtn.textContent = originalText;
+      }, 1500);
+      return;
+    }
+    
+    const urlsText = visibleUrls.join('\n');
+    copyToClipboard(urlsText, copyAllBtn);
   });
 
   checkStatusBtn.addEventListener('click', function() {
@@ -32,12 +51,19 @@ document.addEventListener('DOMContentLoaded', function() {
     checkAllStatus().then(() => {
       checkStatusBtn.disabled = false;
       checkStatusBtn.textContent = 'Check Status';
+      // Show filter controls after first status check
+      filterControls.style.display = 'flex';
     });
+  });
+
+  statusFilter.addEventListener('change', function() {
+    filterLinks(statusFilter.value);
+    updateCopyButtonLabel(statusFilter.value);
   });
 
   function loadLinks() {
     linkList.innerHTML = '<div class="loading">Loading links</div>';
-    stats.textContent = 'Loading links from page...';
+    statsCount.textContent = 'Loading links from page...';
 
     if (sourceTabId) {
       // Get source tab info and send message
@@ -73,11 +99,13 @@ document.addEventListener('DOMContentLoaded', function() {
       updateStats(response.links.length);
       copyAllBtn.style.display = response.links.length > 0 ? 'inline-block' : 'none';
       checkControls.style.display = response.links.length > 0 ? 'flex' : 'none';
+      updateCopyButtonLabel('all');
     } else {
       currentLinks = [];
       showNoLinks();
       copyAllBtn.style.display = 'none';
       checkControls.style.display = 'none';
+      filterControls.style.display = 'none';
     }
   }
 
@@ -95,21 +123,27 @@ document.addEventListener('DOMContentLoaded', function() {
       
       const urlSpan = document.createElement('div');
       urlSpan.className = 'link-url';
-      urlSpan.textContent = linkData.url;
-      urlSpan.title = linkData.url;
       
+      const linkElement = document.createElement('a');
+      linkElement.href = linkData.url;
+      linkElement.textContent = linkData.url;
+      linkElement.title = linkData.url;
+      linkElement.target = '_blank';
+      linkElement.rel = 'noopener noreferrer';
+      
+      urlSpan.appendChild(linkElement);
       linkItem.appendChild(urlSpan);
       linkList.appendChild(linkItem);
     });
   }
 
   function updateStats(count) {
-    stats.textContent = `Found ${count} article link${count !== 1 ? 's' : ''} on this page`;
+    statsCount.textContent = `Found ${count} article link${count !== 1 ? 's' : ''} on this page`;
   }
 
   function showNoLinks() {
     linkList.innerHTML = '<div class="no-links">No article links found on page</div>';
-    stats.textContent = 'No links found';
+    statsCount.textContent = 'No links found';
   }
 
   function displaySourceUrl(url, title) {
@@ -120,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function showError(message) {
     linkList.innerHTML = `<div class="no-links">Error: ${message}</div>`;
-    stats.textContent = 'Error loading links';
+    statsCount.textContent = 'Error loading links';
   }
 
   async function checkAllStatus() {
@@ -204,5 +238,99 @@ document.addEventListener('DOMContentLoaded', function() {
         button.textContent = 'Copy All URLs';
       }, 1500);
     });
+  }
+
+  function filterLinks(filterValue) {
+    const linkItems = linkList.querySelectorAll('.link-item');
+    let visibleCount = 0;
+    
+    linkItems.forEach(function(linkItem) {
+      const statusCode = linkItem.querySelector('.status-code');
+      let shouldShow = true;
+      
+      if (filterValue === 'all') {
+        shouldShow = true;
+      } else if (filterValue === 'unchecked') {
+        shouldShow = !statusCode;
+      } else if (statusCode) {
+        const statusText = statusCode.textContent;
+        const statusClass = statusCode.className;
+        
+        switch (filterValue) {
+          case '200':
+            shouldShow = statusClass.includes('status-200');
+            break;
+          case '300':
+            shouldShow = statusClass.includes('status-300');
+            break;
+          case '400':
+            shouldShow = statusClass.includes('status-400');
+            break;
+          case '500':
+            shouldShow = statusClass.includes('status-500');
+            break;
+          case 'cors':
+            shouldShow = statusText === 'CORS';
+            break;
+          case 'error':
+            shouldShow = statusText === 'Error';
+            break;
+          default:
+            shouldShow = true;
+        }
+      } else {
+        shouldShow = false;
+      }
+      
+      if (shouldShow) {
+        linkItem.classList.remove('hidden');
+        visibleCount++;
+      } else {
+        linkItem.classList.add('hidden');
+      }
+    });
+    
+    // Update stats to show filtered count
+    const totalCount = currentLinks.length;
+    if (filterValue === 'all') {
+      statsCount.textContent = `Found ${totalCount} article link${totalCount !== 1 ? 's' : ''} on this page`;
+    } else {
+      statsCount.textContent = `Showing ${visibleCount} of ${totalCount} links`;
+    }
+  }
+
+  function updateCopyButtonLabel(filterValue) {
+    let label = '\ud83d\udccb Copy ';
+    
+    switch (filterValue) {
+      case 'all':
+        label += 'All URLs';
+        break;
+      case '200':
+        label += 'Success URLs';
+        break;
+      case '300':
+        label += 'Redirect URLs';
+        break;
+      case '400':
+        label += 'Client Error URLs';
+        break;
+      case '500':
+        label += 'Server Error URLs';
+        break;
+      case 'cors':
+        label += 'CORS URLs';
+        break;
+      case 'error':
+        label += 'Error URLs';
+        break;
+      case 'unchecked':
+        label += 'Unchecked URLs';
+        break;
+      default:
+        label += 'URLs';
+    }
+    
+    copyAllBtn.textContent = label;
   }
 });
