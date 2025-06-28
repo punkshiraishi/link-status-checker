@@ -14,8 +14,10 @@
       margin: 0;
       padding: 24px;
       background: #f8fafc;
-      min-height: 100vh;
+      height: 100vh;
       line-height: 1.6;
+      overflow: hidden;
+      box-sizing: border-box;
     }
     
     .container {
@@ -24,8 +26,11 @@
       background: white;
       border-radius: 20px;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-      overflow: hidden;
       border: 1px solid #e2e8f0;
+      height: calc(100vh - 48px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
     
     .header {
@@ -33,6 +38,8 @@
       color: white;
       padding: 32px;
       text-align: center;
+      flex-shrink: 0;
+      border-radius: 20px 20px 0 0;
     }
     
     .header h1 {
@@ -76,6 +83,7 @@
       border-top: 1px solid #e2e8f0;
       margin: 0;
       font-size: 14px;
+      flex-shrink: 0;
     }
     
     .controls {
@@ -86,6 +94,7 @@
       align-items: center;
       flex-wrap: wrap;
       background: white;
+      flex-shrink: 0;
     }
     
     .btn {
@@ -171,7 +180,7 @@
     }
     
     .link-list {
-      max-height: 60vh;
+      flex: 1;
       overflow-y: auto;
       overflow-x: hidden;
       background: white;
@@ -285,6 +294,34 @@
       scrollbar-width: thin;
       scrollbar-color: #667eea #f1f5f9;
     }
+    
+    .coffee-link {
+      text-align: center;
+      padding: 20px;
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+      flex-shrink: 0;
+      border-radius: 0 0 20px 20px;
+    }
+    
+    .coffee-link a {
+      display: inline-block;
+      transition: all 0.2s ease;
+    }
+    
+    .coffee-link a:hover {
+      transform: translateY(-2px);
+    }
+    
+    .coffee-link img {
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: all 0.2s ease;
+    }
+    
+    .coffee-link a:hover img {
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    }
   </style>
 </head>
 <body>
@@ -317,6 +354,12 @@
     
     <div id="linkList" class="link-list">
       <div class="loading">Loading links</div>
+    </div>
+    
+    <div class="coffee-link">
+      <a href="https://www.buymeacoffee.com/punkshiraishi" target="_blank" rel="noopener noreferrer">
+        <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=☕&slug=punkshiraishi&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff" alt="Buy me a coffee" />
+      </a>
     </div>
   </div>
   
