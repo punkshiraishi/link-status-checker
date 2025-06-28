@@ -4,7 +4,11 @@
   "version": "1.0",
   "description": "Extract and display article links from web pages",
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "tabs"
+  ],
+  "host_permissions": [
+    "<all_urls>"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -14,6 +18,12 @@
     {
       "matches": ["<all_urls>"],
       "js": ["content.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["tab.html"],
+      "matches": ["<all_urls>"]
     }
   ]
 }
