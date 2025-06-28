@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Link Picker",
+  "name": "Link Status Checker",
   "version": "1.0",
-  "description": "Extract and display article links from web pages",
+  "description": "Extract article links from web pages and check their HTTP status codes",
   "permissions": [
     "activeTab",
     "tabs"
@@ -12,7 +12,7 @@
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Link Picker"
+    "default_title": "Link Status Checker"
   },
   "content_scripts": [
     {
